@@ -2,13 +2,17 @@ import {
   IsEmail,
   IsEnum,
   IsNotEmpty,
-  IsOptional,
   IsString,
   MaxLength,
   MinLength,
 } from 'class-validator';
 import { ICreateUserRequest } from '../interfaces';
 import { ApiProperty } from '@nestjs/swagger';
+
+export enum Role {
+  USER = 'user',
+  ADMIN = 'admin',
+}
 
 export class CreateUserDto implements ICreateUserRequest {
   @ApiProperty({
@@ -56,5 +60,6 @@ export class CreateUserDto implements ICreateUserRequest {
     default: 'user',
   })
   @IsNotEmpty()
-  role: 'user' | 'admin';
+  @IsEnum(Role, { message: 'Role faqat "user" yoki "admin" bo\'lishi mumkin' })
+  role: Role;
 }

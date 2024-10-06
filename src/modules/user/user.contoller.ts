@@ -14,7 +14,7 @@ import { UserService } from './user.service';
 import { User } from './models';
 import { CreateUserDto, UpdateUserDto } from './dtos';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { multerConfig } from 'src/config/multer.config';
+import { multerConfig } from '@config';
 import { ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('User')
@@ -57,7 +57,7 @@ export class UserController {
     @Body() payload: CreateUserDto,
     @UploadedFile() image: Express.Multer.File,
   ): Promise<void> {
-    console.log(payload);
+    // console.log(payload);
     return await this.#_service.createUser({
       ...payload,
       image: image?.filename,

@@ -3,5 +3,5 @@ export declare interface ICreateUserRequest {
     password : string,
     email : string;
     image :  string;
-    role : "user" | "admin";
+    role : string;
 }

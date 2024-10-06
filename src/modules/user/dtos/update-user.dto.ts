@@ -1,5 +1,6 @@
 import {
   IsEmail,
+  IsEnum,
   IsOptional,
   IsString,
   MaxLength,
@@ -7,6 +8,7 @@ import {
 } from 'class-validator';
 import { IUpdateUserRequest } from '../interfaces';
 import { ApiProperty } from '@nestjs/swagger';
+import { Role } from './create-user.dto';
 
 export class UpdateUserDto implements Omit<IUpdateUserRequest, 'id'> {
   @ApiProperty({
@@ -54,5 +56,6 @@ export class UpdateUserDto implements Omit<IUpdateUserRequest, 'id'> {
     default: 'user',
   })
   @IsOptional()
-  role: 'user' | 'admin';
+  @IsEnum(Role, { message: 'Role faqat "user" yoki "admin" bo\'lishi mumkin' })
+  role: Role;
 }
