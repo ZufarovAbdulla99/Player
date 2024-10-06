@@ -1,115 +1,91 @@
-import { Injectable } from "@nestjs/common";
-import { InjectModel } from "@nestjs/sequelize";
-import { User } from "./models";
-import { ICreateUserRequest } from "./interfaces";
-import { hash } from "bcrypt";
-
-@Injectable()
-export class UserService {
-    constructor(@InjectModel(User) private userModel: typeof User) {}
-
-    async createUser(payload: ICreateUserRequest): Promise<void> {
-        console.log(payload, "*")
-        const hashedPassword = await hash(payload.password, 12)
-
-        await this.userModel.create({
-            username: payload.username,
-            password: hashedPassword,
-            email: payload.email,
-            image: payload.image,
-            role: payload.role,
-        })
-    }
-
-    async getAllUsers(): Promise<User[]> {
-        return await this.userModel.findAll();
-    }
-
-    async getUser(userId: number): Promise<User> {
-        return await this.userModel.findByPk(userId)
-    }
-}
-
-/*
-import { join } from 'path';
-import * as fs from 'fs/promises'
-import { Injectable, NotFoundException } from "@nestjs/common";
-import { InjectModel } from "@nestjs/sequelize";
-import { User } from "./models";
-import { ICreateUserRequest, IUpdateUserRequest } from "./interfaces";
-import { Article } from '../articles';
+import { Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/sequelize';
+import { User } from './models';
+import { ICreateUserRequest, IUpdateUserRequest } from './interfaces';
 import { hash } from 'bcrypt';
+import { unlink } from 'fs';
+import { join } from 'path';
 
 @Injectable()
 export class UserService {
-    constructor(@InjectModel(User) private userModel: typeof User) { }
+  constructor(@InjectModel(User) private userModel: typeof User) {}
 
-    async create(payload: ICreateUserRequest): Promise<User> {
+  async createUser(payload: ICreateUserRequest): Promise<void> {
+    // console.log(payload, "*")
+    const hashedPassword = await hash(payload.password, 12);
 
-        const hashedPassword = await hash(payload.password, 12)
+    await this.userModel.create({
+      username: payload.username,
+      password: hashedPassword,
+      email: payload.email,
+      image: payload.image,
+      role: payload.role,
+    });
+  }
 
-        const newUser = await this.userModel.create({
-            full_name: payload.full_name,
-            email: payload.email,
-            password: hashedPassword,
-            role: payload.role,
-            image: payload.image
-        })
+  async getAllUsers(): Promise<User[] | string> {
+    const selectedUsers = await this.userModel.findAll()
+    // console.log(selectedUsers)
+    if(!selectedUsers.length) {
+        return `Any user not found`
+    }
+    return await this.userModel.findAll();
+  }
 
-        return await this.findById(newUser.id)
+  async getUser(userId: number): Promise<User | string> {
+    const user = await this.userModel.findByPk(userId);
+
+    if(!user) {
+        return `User not found`
     }
 
-    async findAll(): Promise<User[]> {
-        return await this.userModel.findAll({
-            attributes: {
-                exclude: ['password', 'updatedAt', 'createdAt']
-            },
-            include: [Article]
-        });
+    return await this.userModel.findByPk(userId);
+  }
+
+  async updateUser(userId: number, payload: IUpdateUserRequest): Promise<void | string> {
+    const user = await this.userModel.findByPk(userId);
+
+    // console.log(user) // // null
+    if(!user) {
+        return `User not found`
     }
 
-    async findById(id: number): Promise<User> {
-        const user = await this.userModel.findByPk(id, {
-            attributes: {
-                exclude: ['password', 'updatedAt', 'createdAt']
-            }
-        })
+    if (user.image)
+      unlink(join(__dirname, '..', '..', '..', 'uploads', user.image), (err) => {
+        if(err) {
+            console.log("File o'chirishda xatolik yoki fayl mavjud emas")
+        }
+    });
 
-        if (!user)
-            throw new NotFoundException()
+    const hashedPassword = await hash(payload.password, 12);
 
-        return user
+    await user.update({
+      username: payload.username,
+      password: hashedPassword,
+      email: payload.email,
+      image: payload.image,
+      role: payload.role,
+    });
+  }
+
+  async deleteUser(userId: number): Promise<void | string> {
+    const selectedUser = await this.userModel.findByPk(userId)
+
+    // console.log(selectedUser)
+    if(!selectedUser){
+        return `User not found can't delete`
     }
 
-    async updateById(payload: IUpdateUserRequest): Promise<User> {
+    await selectedUser.destroy()
+  }
 
-        const user = await this.findById(payload.id)
-
-        if (user.image)
-            fs.unlink(join(__dirname, '..', '..', '..', 'uploads', user.image))
-
-        const hashedPassword = await hash(payload.password, 12)
-
-        await user.update({
-            full_name: payload.full_name,
-            email: payload.email,
-            password: hashedPassword,
-            role: payload.role,
-            image: payload.image
-        })
-
-        return await this.findById(user.id)
-
+  async deleteAllUsers(): Promise<void | string> {
+    const selectedUsers = await this.userModel.findAll()
+    // console.log(selectedUsers)
+    if(!selectedUsers.length) {
+        return `Any user not found`
     }
 
-    async deleteById(id: number): Promise<boolean> {
-
-        const user = await this.findById(id)
-
-        if (user.image)
-            fs.unlink(join(__dirname, '..', '..', '..', 'uploads', user.image))
-
-        await user.destroy()
-        return true
-    }
-}*/
+    await this.userModel.truncate()
+  }
+}

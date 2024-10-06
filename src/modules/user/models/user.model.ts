@@ -30,14 +30,15 @@ export class User extends Model {
     email: string;
 
     @Column({
-        type: DataType.STRING
+        type: DataType.STRING,
+        defaultValue: "user.svg"
     })
     image: string;
 
     @Column({
         type: DataType.STRING,
         allowNull: false,
-        defaultValue: "user"
+        defaultValue: "user",
     })
     role: string;
 }

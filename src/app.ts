@@ -1,15 +1,16 @@
-import { appConfig, dbConfig } from '@config';
+import { appConfig, dbConfig, jwtConfig } from '@config';
 import { User } from '@modules';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { UserModule } from './modules/user/user.module';
+import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [appConfig, dbConfig],
+      load: [appConfig, dbConfig, jwtConfig],
     }),
     SequelizeModule.forRootAsync({
       imports: [ConfigModule],
@@ -33,7 +34,7 @@ import { UserModule } from './modules/user/user.module';
         }
       },
     }),
-    UserModule,
+    UserModule, AuthModule
   ],
   controllers: [],
   providers: [],
